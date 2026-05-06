@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDIS 38 — Compatibilité Remorque & Permis</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a22;
+    --surface2: #1e2330;
+    --border: #2a3040;
+    --orange: #ff6b1a;
+    --orange-dim: #c04e10;
+    --orange-glow: rgba(255,107,26,.18);
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --yellow: #f39c12;
+    --blue: #3498db;
+    --purple: #9b59b6;
+    --text: #e8eaf0;
+    --text-dim: #7a8099;
+    --text-muted: #4a5068;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── HEADER ─────────────────────────────────────────── */
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--orange);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo-badge {
+    background: var(--orange);
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+  }
+
+  header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  header .subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .header-stats {
+    margin-left: auto;
+    display: flex;
+    gap: 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .header-stats span b {
+    color: var(--orange);
+    font-size: 15px;
+  }
+
+  /* ── MAIN LAYOUT ────────────────────────────────────── */
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .full-width { grid-column: 1 / -1; }
+
+  /* ── CARDS ──────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: var(--surface2);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header .icon {
+    font-size: 18px;
+  }
+
+  .card-header h2 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .card-header .badge-count {
+    margin-left: auto;
+    background: var(--orange-glow);
+    color: var(--orange);
+    border: 1px solid var(--orange-dim);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+
+  .card-body {
+    padding: 20px;
+  }
+
+  /* ── SEARCH ─────────────────────────────────────────── */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px 10px 38px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+  }
+
+  .search-wrap input:focus { border-color: var(--orange); }
+
+  .search-wrap .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* ── SELECT ─────────────────────────────────────────── */
+  select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    max-height: 240px;
+    transition: border-color .2s;
+  }
+
+  select:focus { border-color: var(--orange); }
+  select option { padding: 6px; background: var(--surface2); }
+  select option:hover { background: var(--orange); }
+
+  /* ── VEHICLE INFO PANEL ─────────────────────────────── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .info-cell {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+  }
+
+  .info-cell .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .info-cell .value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .info-cell .value.highlight { color: var(--orange); }
+  .info-cell .value.ok { color: var(--green); }
+  .info-cell .value.warn { color: var(--yellow); }
+  .info-cell .value.err { color: var(--red); }
+
+  /* ── RESULT PANEL ───────────────────────────────────── */
+  #result-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all .3s;
+  }
+
+  .result-inner {
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .result-left h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .calc-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 6px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+
+  .calc-row .calc-label {
+    color: var(--text-dim);
+    width: 260px;
+  }
+
+  .calc-row .calc-val {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .calc-row.total {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+
+  .calc-row.total .calc-val {
+    color: var(--orange);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /* ── PERMIT BADGE ───────────────────────────────────── */
+  .permit-badge {
+    min-width: 140px;
+    text-align: center;
+    border-radius: 10px;
+    padding: 20px 24px;
+    border: 2px solid;
+  }
+
+  .permit-badge .permit-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .permit-badge .permit-code {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1;
+    letter-spacing: 2px;
+  }
+
+  .permit-badge .permit-desc {
+    font-size: 10px;
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+
+  .permit-B { border-color: var(--green); color: var(--green); }
+  .permit-B96 { border-color: var(--yellow); color: var(--yellow); }
+  .permit-BE { border-color: var(--orange); color: var(--orange); }
+  .permit-C { border-color: var(--blue); color: var(--blue); }
+  .permit-CE { border-color: var(--purple); color: var(--purple); }
+  .permit-NC { border-color: var(--text-muted); color: var(--text-muted); }
+
+  /* ── ALERT STRIP ────────────────────────────────────── */
+  .alert-strip {
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    border-top: 1px solid var(--border);
+  }
+
+  .alert-strip.ok { background: rgba(46,204,113,.08); color: var(--green); border-top-color: rgba(46,204,113,.3); }
+  .alert-strip.warn { background: rgba(243,156,18,.08); color: var(--yellow); border-top-color: rgba(243,156,18,.3); }
+  .alert-strip.err { background: rgba(231,76,60,.08); color: var(--red); border-top-color: rgba(231,76,60,.3); }
+
+  /* ── ATTELAGE BADGE ─────────────────────────────────── */
+  .attelage-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+
+  .attelage-badge.has { background: rgba(46,204,113,.12); color: var(--green); border: 1px solid rgba(46,204,113,.3); }
+  .attelage-badge.no { background: rgba(231,76,60,.1); color: var(--red); border: 1px solid rgba(231,76,60,.25); }
+
+  /* ── EMPTY STATE ────────────────────────────────────── */
+  .empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+
+  .empty-state .big-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: .4;
+  }
+
+  /* ── FILTERS ────────────────────────────────────────── */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--orange-glow);
+    border-color: var(--orange-dim);
+    color: var(--orange);
+  }
+
+  /* ── FOOTER ─────────────────────────────────────────── */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    margin-top: 10px;
+  }
+
+  .no-select { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-badge">SDIS 38</div>
+  <div>
+    <h1>Compatibilité Remorque &amp; Permis de Conduire</h1>
+    <div class="subtitle">Parc véhicules — État au 18/11/2025</div>
+  </div>
+  <div class="header-stats">
+    <span><b id="count-veh">277</b><br>véhicules</span>
+    <span><b id="count-rem">42</b><br>remorques</span>
+  </div>
+</header>
+
+<main>
+  <!-- ── VEHICLE SELECTOR ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="icon">🚒</span>
+      <h2>Véhicule tracteur</h2>
+      <span class="badge-count" id="veh-count-badge">277</span>
+    </div>
+    <div class="card-body">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="veh-search" placeholder="Identifiant, immat, caserne, type…" oninput="filterVehicles()">
+      </div>
+      <div class="filter-row" id="veh-filters">
+        <button class="filter-btn active" onclick="setVehFilter('',this)">Tous</button>
+        <button class="filter-btn" onclick="setVehFilter('attelage',this)">⛓️ Avec attelage</button>
+        <button class="filter-btn" onclick="setVehFilterGrp('GROUPEMENT NORD',this)">Nord</button>
+        <button class="filter-btn" onclick="setVehFilterGrp('GROUPEMENT SUD',this)">Sud</button>
+        <button class="filter-btn" onclick="setVehFilter('operational',this)">Opérationnel</button>
+      </div>
+      <select id="veh-select" size="8" onchange="onVehicleSelect()">
+        <option value="">— Sélectionner un véhicule —</option>
+      </select>
+      <div id="veh-info"></div>
+    </div>
+  </div>
+
+  <!-- ── TRAILER SELECTOR ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="icon">🚐</span>
+      <h2>Remorque</h2>
+      <span class="badge-count" id="rem-count-badge">42</span>
+    </div>
+    <div class="card-body">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="rem-search" placeholder="Identifiant, immat, type, caserne…" oninput="filterTrailers()">
+      </div>
+      <div class="filter-row" id="rem-filters">
+        <button class="filter-btn active" onclick="setRemFilter('',this)">Tous</button>
+        <button class="filter-btn" onclick="setRemFilter('RB',this)">RB</button>
+        <button class="filter-btn" onclick="setRemFilter('RMP',this)">RMP</button>
+        <button class="filter-btn" onclick="setRemFilter('RMPGP',this)">RMPGP</button>
+        <button class="filter-btn" onclick="setRemFilter('RPO',this)">RPO</button>
+        <button class="filter-btn" onclick="setRemFilter('RULTT',this)">RULTT</button>
+      </div>
+      <select id="rem-select" size="8" onchange="onTrailerSelect()">
+        <option value="">— Sélectionner une remorque —</option>
+      </select>
+      <div id="rem-info"></div>
+    </div>
+  </div>
+
+  <!-- ── RESULT ── -->
+  <div id="result-panel" class="card full-width">
+    <div id="result-empty" class="empty-state">
+      <div class="big-icon">🔗</div>
+      Sélectionnez un véhicule et une remorque pour calculer le permis requis
+    </div>
+    <div id="result-content" style="display:none">
+      <div class="result-inner">
+        <div class="result-left">
+          <h3>Calcul de l'ensemble</h3>
+
+          <div class="calc-row">
+            <span class="calc-label">PTAC du véhicule</span>
+            <span class="calc-val" id="r-ptac-veh">—</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">PTAC de la remorque</span>
+            <span class="calc-val" id="r-ptac-rem">—</span>
+          </div>
+          <div class="calc-row total">
+            <span class="calc-label">Total PTAC ensemble</span>
+            <span class="calc-val" id="r-total">—</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">PTRA du véhicule (max autorisé)</span>
+            <span class="calc-val" id="r-ptra">—</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">Charge utile remorque restante</span>
+            <span class="calc-val" id="r-cu">—</span>
+          </div>
+        </div>
+        <div>
+          <div class="permit-badge" id="permit-badge">
+            <div class="permit-label">Permis requis</div>
+            <div class="permit-code" id="permit-code">—</div>
+            <div class="permit-desc" id="permit-desc"></div>
+          </div>
+        </div>
+      </div>
+      <div class="alert-strip" id="result-alert"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  SDIS 38 — Outil interne de vérification · Données parc 18/11/2025 · Réglementation code de la route (Art. R.221-1 et suivants)
+</footer>
+
+<script>
+const VEHICLES = [{"id": "CCF4-00007", "type": "CCF4", "immat": "330CJK", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13400.0, "pv": 7860.0, "ptra": 14900.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCF4-00008", "type": "CCF4", "immat": "331CJK", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "TULLINS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13400.0, "pv": 7860.0, "ptra": 14900.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "CCF4-00009", "type": "CCF4", "immat": "332CJK", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "LA MURE", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13400.0, "pv": 7860.0, "ptra": 14900.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCF4-00010", "type": "CCF4", "immat": "333CJK", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "ROYBON", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13400.0, "pv": 7860.0, "ptra": 14900.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCF4-00011", "type": "CCF4", "immat": "334CJK", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "BEAUREPAIRE", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13400.0, "pv": 7860.0, "ptra": 14900.0, "attelage": "MIXTE-0,375T", "statut": "Opérationel"}, {"id": "CCF4-00012", "type": "CCF4", "immat": "335CJK", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "SAINT-JEAN-DE-BOURNAY", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13400.0, "pv": 7860.0, "ptra": 14900.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCF4-00013", "type": "CCF4", "immat": "336CJK", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "ECHIROLLES", "centre": "29 - SUD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13400.0, "pv": 7860.0, "ptra": 14900.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCF4-00014", "type": "CCF4", "immat": "261CRV", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "PONTCHARRA", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13500.0, "pv": 7940.0, "ptra": 17000.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCF4-00015", "type": "CCF4", "immat": "264CRV", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "MOIRANS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13500.0, "pv": 7940.0, "ptra": 17000.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCF4-00016", "type": "CCF4", "immat": "266CRV", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "SAINT-QUENTIN-FALLAVIER", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13500.0, "pv": 7940.0, "ptra": 17000.0, "attelage": "BOULE-3,5T", "statut": "Opérationel"}, {"id": "CCF4-00017", "type": "CCF4", "immat": "267CRV", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "SAINT-ETIENNE-DE-SAINT-GEOIRS", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13500.0, "pv": 7940.0, "ptra": 17000.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCF4-00018", "type": "CCF4", "immat": "269CRV", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13500.0, "pv": 7940.0, "ptra": 17000.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCF4-00019", "type": "CCF4", "immat": "308DAJ", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "LA TOUR-DU-PIN", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13500.0, "pv": 8430.0, "ptra": 15000.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCF4-00020", "type": "CCF4", "immat": "310DAJ", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "CHABONS", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13500.0, "pv": 8430.0, "ptra": 15000.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCF4-00021", "type": "CCF4", "immat": "312DAJ", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "SAINT-MARCELLIN", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13500.0, "pv": 8430.0, "ptra": 15000.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCF4-00023", "type": "CCF4", "immat": "FD410AW", "marque": "RENAULT", "modele": "", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8890.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCFU-00032", "type": "CCFU", "immat": "GW797MW", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "LE BOURG-D'OISANS", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 8651.0, "ptra": 13750.0, "attelage": "MIXTE-0,375T", "statut": "Opérationel"}, {"id": "CCFU-00033", "type": "CCFU", "immat": "GW611QC", "marque": "MERCEDES", "modele": "UNIMOG", "caserne": "MIRIBEL-LES-ECHELLES", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 8651.0, "ptra": 13750.0, "attelage": "MIXTE-0,375T", "statut": "Opérationel"}, {"id": "CCR-00004", "type": "CCR", "immat": "836BND", "marque": "RENAULT", "modele": "MIDLUM 210-14", "caserne": "LES ADRETS", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8000.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00007", "type": "CCR", "immat": "29BRA", "marque": "RENAULT", "modele": "MIDLUM 210-14", "caserne": "MORESTEL", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 7480.0, "ptra": 17500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCR-00010", "type": "CCR", "immat": "35BRA", "marque": "RENAULT", "modele": "MIDLUM 210-14", "caserne": "SAINT-MURY-MONTEYMOND", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 7480.0, "ptra": 17500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCR-00013", "type": "CCR", "immat": "41BRA", "marque": "RENAULT", "modele": "MIDLUM 210-14", "caserne": "SAINT-ANTOINE-L'ABBAYE", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 7480.0, "ptra": 17500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCR-00016", "type": "CCR", "immat": "245CZR", "marque": "RENAULT", "modele": "MIDLUM 220 DCI", "caserne": "LE SAPPEY-EN-CHARTREUSE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8870.0, "ptra": 14750.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCR-00017", "type": "CCR", "immat": "246CZR", "marque": "RENAULT", "modele": "MIDLUM 220 DCI", "caserne": "SEPTEME", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8870.0, "ptra": 14750.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCR-00018", "type": "CCR", "immat": "247CZR", "marque": "RENAULT", "modele": "MIDLUM 220 DCI", "caserne": "BUREAU GESTION DE PARC => LUZINAY", "centre": "SERVICE ETUDES TECHNIQUES ET GESTION DE PARC", "groupement": "GROUPEMENT EQUIPEMENTS", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8870.0, "ptra": 14750.0, "attelage": "MIXTE-0,75T", "statut": "En glissement"}, {"id": "CCR-00019", "type": "CCR", "immat": "250CZR", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "CORPS", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8870.0, "ptra": 14750.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCR-00021", "type": "CCR", "immat": "870DGA", "marque": "RENAULT", "modele": "MIDLUM-240 DXI", "caserne": "MENS", "centre": "26 - TRIEVES", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCR-00022", "type": "CCR", "immat": "881DGA", "marque": "RENAULT", "modele": "MIDLUM-240 DXI", "caserne": "VALBONNAIS", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCR-00023", "type": "CCR", "immat": "886DGA", "marque": "RENAULT", "modele": "MIDLUM-240 DXI", "caserne": "SATOLAS-ET-BONCE", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCR-00029", "type": "CCR", "immat": "AE242TN", "marque": "RENAULT", "modele": "MIDLUM 280 DXI", "caserne": "VILLARD-DE-LANS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8760.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCR-00030", "type": "CCR", "immat": "AE357TN", "marque": "RENAULT", "modele": "MIDLUM 280 DXI", "caserne": "HUEZ", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8760.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCR-00032", "type": "CCR", "immat": "AE909TM", "marque": "RENAULT", "modele": "MIDLUM 280 DXI", "caserne": "PONT-EN-ROYANS", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8760.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCR-00033", "type": "CCR", "immat": "BD437ZT", "marque": "RENAULT", "modele": "MIDLUM 300.14 DXI", "caserne": "CHAPAREILLAN", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00034", "type": "CCR", "immat": "BD513ZT", "marque": "RENAULT", "modele": "MIDLUM 300.14 DXI", "caserne": "COLOMBE", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCR-00035", "type": "CCR", "immat": "BL330HE", "marque": "RENAULT", "modele": "MIDLUM 300.15 DXI", "caserne": "SAINT-LAURENT-DU-PONT", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCR-00036", "type": "CCR", "immat": "BL414HE", "marque": "RENAULT", "modele": "MIDLUM 300.15 DXI", "caserne": "ROYBON", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CCR-00037", "type": "CCR", "immat": "CZ114LB", "marque": "MERCEDES", "modele": "1124", "caserne": "HERBEYS", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6630.0, "ptra": 15500.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "CCR-00038", "type": "CCR", "immat": "CB697ZE", "marque": "RENAULT", "modele": "MIDLUM 300.15 DXI", "caserne": "AUTRANS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00039", "type": "CCR", "immat": "CB810ZD", "marque": "RENAULT", "modele": "MIDLUM 300.15 DXI", "caserne": "VIZILLE", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00040", "type": "CCR", "immat": "CR876ZA", "marque": "RENAULT", "modele": "MIDLUM 300.15 DXI", "caserne": "VIF", "centre": "29 - SUD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00042", "type": "CCR", "immat": "DN562NV", "marque": "RENAULT", "modele": "MIDLUM 300.15 DXI", "caserne": "MONTALIEU-VERCIEU", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00043", "type": "CCR", "immat": "EG939LL", "marque": "RENAULT", "modele": "MIDLUM 300.15 DTI", "caserne": "THEYS", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9100.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00044", "type": "CCR", "immat": "FB220DW", "marque": "RENAULT", "modele": "MIDLUM 300.15 DTI", "caserne": "VAULNAVEYS LE HAUT", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9320.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00045", "type": "CCR", "immat": "FB262DW", "marque": "RENAULT", "modele": "MIDLUM 300.15 DTI", "caserne": "LES DEUX-ALPES", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9320.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00046", "type": "CCR", "immat": "FB326DW", "marque": "RENAULT", "modele": "MIDLUM 300.15 DTI", "caserne": "LE TOUVET", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9320.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00047", "type": "CCR", "immat": "GS520WP", "marque": "MAN", "modele": "TGM", "caserne": "LES AVENIERES", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9229.0, "ptra": 16750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00048", "type": "CCR", "immat": "GS277XL", "marque": "MAN", "modele": "TGM", "caserne": "LE PEAGE-DE-ROUSSILLON", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9229.0, "ptra": 16750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00049", "type": "CCR", "immat": "GS039ZM", "marque": "MAN", "modele": "TGM", "caserne": "SASSENAGE", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9229.0, "ptra": 16750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00050", "type": "CCR", "immat": "GS091ZM", "marque": "MAN", "modele": "TGM", "caserne": "PONT-DE-CHERUY", "centre": "12 - PORTES DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9229.0, "ptra": 16750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00051", "type": "CCR", "immat": "GS135ZM", "marque": "MAN", "modele": "TGM", "caserne": "CROLLES", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9229.0, "ptra": 16750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCR-00052", "type": "CCR", "immat": "GS179ZM", "marque": "MAN", "modele": "TGM", "caserne": "SAINT-CHEF", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9229.0, "ptra": 16750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCRL-00001", "type": "CCRL", "immat": "EQ630AE", "marque": "MITSUBISHI FUSO", "modele": "CANTER", "caserne": "SAINT-BAUDILLE-DE-LA-TOUR", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 7500.0, "pv": 4500.0, "ptra": 8250.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCRSR-00002", "type": "CCRSR", "immat": "EP222BV", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "ALLEVARD", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9120.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCRSR-00003", "type": "CCRSR", "immat": "EP739HK", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "CHASSE-SUR-RHONE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9120.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCRSR-00004", "type": "CCRSR", "immat": "EQ353JA", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "LE BOURG-D'OISANS", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9120.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCRSR-00005", "type": "CCRSR", "immat": "EQ368JA", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "MONESTIER-DE-CLERMONT", "centre": "26 - TRIEVES", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9120.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCRSR-00006", "type": "CCRSR", "immat": "EQ384JA", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "LIVET-ET-GAVET", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9120.0, "ptra": 14750.0, "attelage": "", "statut": "Opérationel"}, {"id": "CCRSR-00007", "type": "CCRSR", "immat": "GA872AM", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "VILLARD-DE-LANS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15600.0, "pv": 9530.0, "ptra": 16350.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCRSR-00008", "type": "CCRSR", "immat": "GA883AY", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "CREMIEU", "centre": "12 - PORTES DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15600.0, "pv": 9530.0, "ptra": 16350.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCRSR-00009", "type": "CCRSR", "immat": "GA383AY", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "VINAY", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15600.0, "pv": 9530.0, "ptra": 16350.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCRSR-00010", "type": "CCRSR", "immat": "GA828BH", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "LA COTE-SAINT-ANDRE", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15600.0, "pv": 9530.0, "ptra": 16350.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCRSR-00011", "type": "CCRSR", "immat": "GD644FT", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "HEYRIEUX", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15600.0, "pv": 9465.0, "ptra": 16350.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCRSR-00012", "type": "CCRSR", "immat": "GD462FV", "marque": "RENAULT", "modele": "MIDLUM 280 DTI", "caserne": "LES ABRETS", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15600.0, "pv": 9530.0, "ptra": 16350.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "CCRTU-00001", "type": "CCRTU", "immat": "868DGA", "marque": "RENAULT", "modele": "MIDLUM-240", "caserne": "SAINT-GEORGES-D'ESPERANCHE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCRTU-00002", "type": "CCRTU", "immat": "AE026TN", "marque": "RENAULT", "modele": "MIDLUM 280 DXI", "caserne": "CHAMROUSSE", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8760.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCRTU-00003", "type": "CCRTU", "immat": "AE768TM", "marque": "RENAULT", "modele": "MIDLUM280", "caserne": "GRESSE-EN-VERCORS", "centre": "26 - TRIEVES", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 8760.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCRTU-00004", "type": "CCRTU", "immat": "901DGA", "marque": "RENAULT", "modele": "MIDLUM-240", "caserne": "VILLETTE-D'ANTHON", "centre": "12 - PORTES DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCRTU-00005", "type": "CCRTU", "immat": "889DGA", "marque": "RENAULT", "modele": "MIDLUM-240", "caserne": "LE PLATEAU DES PETITES ROCHES", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CCRTU-00006", "type": "CCRTU", "immat": "902DGA", "marque": "RENAULT", "modele": "MIDLUM-240", "caserne": "MONTFERRAT", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 14000.0, "pv": 9000.0, "ptra": 15500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "CDHR-00002", "type": "CDHR", "immat": "AR526VE", "marque": "IVECO", "modele": "160E21", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7300.0, "ptra": 19500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CDHR-00003", "type": "CDHR", "immat": "AS664GW", "marque": "RENAULT", "modele": "", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 17990.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "CDHR-00004", "type": "CDHR", "immat": "BF582WR", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7150.0, "ptra": 19500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00049", "type": "FPT", "immat": "903AMH", "marque": "IVECO", "modele": "130 E 23", "caserne": "TREPT", "centre": "12 - PORTES DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 6650.0, "ptra": 16500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00067", "type": "FPT", "immat": "896BGB", "marque": "IVECO", "modele": "130 E 23", "caserne": "BUREAU INTENDANCE", "centre": "SERVICE ORGANISATION DE FORMATION", "groupement": "GROUPEMENT FORMATION ET SPORT", "classe": "> 4,5t", "ptac": 13000.0, "pv": 6650.0, "ptra": 14500.0, "attelage": "MIXTE-1,5T", "statut": "Formation"}, {"id": "FPT-00069", "type": "FPT", "immat": "902BGB", "marque": "IVECO", "modele": "130 E 23", "caserne": "AGNIN", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 6650.0, "ptra": 14500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPT-00070", "type": "FPT", "immat": "AR987LP", "marque": "IVECO", "modele": "130 E 23", "caserne": "LA FRETTE", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 6650.0, "ptra": 13700.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00072", "type": "FPT", "immat": "536BMN", "marque": "IVECO", "modele": "130 E 23", "caserne": "SAINT-ETIENNE-DE-CROSSEY", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 6650.0, "ptra": 13750.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "FPT-00074", "type": "FPT", "immat": "754BYR", "marque": "IVECO", "modele": "130 E 24", "caserne": "LUZINAY", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 6720.0, "ptra": 14500.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "FPT-00075", "type": "FPT", "immat": "758BYR", "marque": "IVECO", "modele": "130 E 24", "caserne": "CHARNECLES", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 6720.0, "ptra": 14500.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "FPT-00076", "type": "FPT", "immat": "760BYR", "marque": "IVECO", "modele": "130 E 24", "caserne": "LA BATIE-MONTGASCON", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 6720.0, "ptra": 14500.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "FPT-00077", "type": "FPT", "immat": "656CBX", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "DOLOMIEU", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 7580.0, "ptra": 14500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00078", "type": "FPT", "immat": "663CBX", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "VERNIOZ", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 7580.0, "ptra": 14500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPT-00081", "type": "FPT", "immat": "AP655VK", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "SAINT-ANDRE-LE-GAZ", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 7580.0, "ptra": 14500.0, "attelage": "MIXTE-0,375T", "statut": "Opérationel"}, {"id": "FPT-00082", "type": "FPT", "immat": "536CGY", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "FRONTONAS", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 7580.0, "ptra": 14500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPT-00083", "type": "FPT", "immat": "425CJG", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "DOMENE", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 7580.0, "ptra": 14500.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "FPT-00084", "type": "FPT", "immat": "CY777MZ", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "JARRIE", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 7850.0, "ptra": 16500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPT-00086", "type": "FPT", "immat": "409CQB", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "LE PONT-DE-BEAUVOISIN", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 7850.0, "ptra": 16500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPT-00088", "type": "FPT", "immat": "330CXV", "marque": "IVECO", "modele": "150 E 24", "caserne": "CHANAS", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8250.0, "ptra": 18500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00089", "type": "FPT", "immat": "332CXV", "marque": "IVECO", "modele": "150 E 24", "caserne": "CHARAVINES", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8250.0, "ptra": 18500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00090", "type": "FPT", "immat": "334CXV", "marque": "IVECO", "modele": "150 E 24", "caserne": "SAINT-SAVIN", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8250.0, "ptra": 18500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00091", "type": "FPT", "immat": "245DAK", "marque": "IVECO", "modele": "150 E 24", "caserne": "RUY - MONTCEAU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8250.0, "ptra": 16500.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "FPT-00093", "type": "FPT", "immat": "DV136YV", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00094", "type": "FPT", "immat": "DW020CH", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "LE PEAGE-DE-ROUSSILLON", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00095", "type": "FPT", "immat": "DY944FP", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "LA TOUR-DU-PIN", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00096", "type": "FPT", "immat": "DY196FQ", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "BEAUCROISSANT", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00097", "type": "FPT", "immat": "ED122SX", "marque": "RENAULT", "modele": "MIDLUM 270.15 SP", "caserne": "EYBENS", "centre": "32 - EST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00098", "type": "FPT", "immat": "ED123SW", "marque": "RENAULT", "modele": "MIDLUM 270.15 SP", "caserne": "TULLINS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00099", "type": "FPT", "immat": "ED847SW", "marque": "RENAULT", "modele": "MIDLUM 270.15 SP", "caserne": "ROCHE", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00100", "type": "FPT", "immat": "ED292SX", "marque": "RENAULT", "modele": "MIDLUM 270.15 SP", "caserne": "SAINT-ISMIER", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPT-00101", "type": "FPT", "immat": "AC845AD", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8395.0, "ptra": 18500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00102", "type": "FPT", "immat": "AC006AN", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "CHIMILIN", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8395.0, "ptra": 18500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00103", "type": "FPT", "immat": "AC801AD", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "LA CHAPELLE-DE-SURIEU", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8395.0, "ptra": 18500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00104", "type": "FPT", "immat": "939DFH", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "CHATTE", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8100.0, "ptra": 18500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00105", "type": "FPT", "immat": "AC768AD", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "VEYRINS-THUELLIN", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8395.0, "ptra": 18500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00106", "type": "FPT", "immat": "933DFH", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "SAINT-ROMANS", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8100.0, "ptra": 18500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPT-00107", "type": "FPT", "immat": "937DFH", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "NIVOLAS-VERMELLE", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 8100.0, "ptra": 18500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPTL-00037", "type": "FPTL", "immat": "59BND", "marque": "RENAULT", "modele": "MIDLUM 180", "caserne": "SERVICE FORMATION SPORT NORD", "centre": "SERVICE FORMATION SPORT NORD", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 10000.0, "pv": 5350.0, "ptra": 10750.0, "attelage": "MIXTE-0,75T", "statut": "Formation"}, {"id": "FPTL-00039", "type": "FPTL", "immat": "57BQZ", "marque": "RENAULT", "modele": "MIDLUM 180", "caserne": "BUREAU INTENDANCE", "centre": "SERVICE ORGANISATION DE FORMATION", "groupement": "GROUPEMENT FORMATION ET SPORT", "classe": "> 4,5t", "ptac": 10000.0, "pv": 5350.0, "ptra": 10750.0, "attelage": "MIXTE-0,75T", "statut": "Formation"}, {"id": "FPTL-00040", "type": "FPTL", "immat": "151BXD", "marque": "RENAULT", "modele": "MIDLUM 180", "caserne": "BUREAU INTENDANCE", "centre": "SERVICE ORGANISATION DE FORMATION", "groupement": "GROUPEMENT FORMATION ET SPORT", "classe": "> 4,5t", "ptac": 10000.0, "pv": 5350.0, "ptra": 11500.0, "attelage": "", "statut": "Formation"}, {"id": "FPTL-00043", "type": "FPTL", "immat": "155BXD", "marque": "RENAULT", "modele": "MIDLUM 180", "caserne": "MOIRANS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 10000.0, "pv": 5350.0, "ptra": 11500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPTL-00044", "type": "FPTL", "immat": "DM052MQ", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "BUREAU INTENDANCE", "centre": "SERVICE ORGANISATION DE FORMATION", "groupement": "GROUPEMENT FORMATION ET SPORT", "classe": "> 4,5t", "ptac": 10000.0, "pv": 5860.0, "ptra": 11500.0, "attelage": "", "statut": "Formation"}, {"id": "FPTL-00045", "type": "FPTL", "immat": "EC813FC", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "SERVICE FORMATION SPORT NORD", "centre": "SERVICE FORMATION SPORT NORD", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 10000.0, "pv": 5860.0, "ptra": 11500.0, "attelage": "MIXTE-1,5T", "statut": "Formation"}, {"id": "FPTL-00048", "type": "FPTL", "immat": "472CEP", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "SAINT-NIZIER-DU-MOUCHEROTTE", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 11500.0, "pv": 5860.0, "ptra": 10000.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPTL-00049", "type": "FPTL", "immat": "DD730EM", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "SERVICE FORMATION SPORT SUD", "centre": "SERVICE FORMATION SPORT SUD", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 11500.0, "pv": 5860.0, "ptra": 10000.0, "attelage": "MIXTE-1,5T", "statut": "Formation"}, {"id": "FPTL-00050", "type": "FPTL", "immat": "DR689SG", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "SERVICE FORMATION SPORT SUD", "centre": "SERVICE FORMATION SPORT SUD", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 11500.0, "pv": 5860.0, "ptra": 10000.0, "attelage": "MIXTE-3,5T", "statut": "Formation"}, {"id": "FPTL-00051", "type": "FPTL", "immat": "DR673SG", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "CHEVRIERES", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 10000.0, "pv": 5350.0, "ptra": 11500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPTL-00052", "type": "FPTL", "immat": "EC838FC", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "VOUREY", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 10000.0, "pv": 5350.0, "ptra": 11500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPTL-00053", "type": "FPTL", "immat": "FP208KJ", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "BRIE-ET-ANGONNES", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6720.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00054", "type": "FPTL", "immat": "FR687DG", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "SAINT-QUENTIN-SUR-ISERE", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6720.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00055", "type": "FPTL", "immat": "FR084FM", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "LA BUISSE", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6720.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00056", "type": "FPTL", "immat": "FR139GB", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "LA MURETTE", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6720.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00057", "type": "FPTL", "immat": "FW189JC", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6760.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00058", "type": "FPTL", "immat": "FW256JB", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6760.0, "ptra": 12750.0, "attelage": "", "statut": "En réparation"}, {"id": "FPTL-00059", "type": "FPTL", "immat": "FW861JB", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "MEYLAN", "centre": "32 - EST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6760.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00060", "type": "FPTL", "immat": "FW180DP", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6780.0, "ptra": 12740.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00061", "type": "FPTL", "immat": "GG029QK", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "SAINT-QUENTIN-FALLAVIER", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6740.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00062", "type": "FPTL", "immat": "GG605QJ", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "GRENOBLE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6740.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00063", "type": "FPTL", "immat": "GG685TR", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6780.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00064", "type": "FPTL", "immat": "GH208KK", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "FOUR", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6780.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00065", "type": "FPTL", "immat": "GJ793GR", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "SAINT-MARTIN-D'HERES", "centre": "32 - EST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6880.0, "ptra": 12750.0, "attelage": "", "statut": "En réparation"}, {"id": "FPTL-00066", "type": "FPTL", "immat": "GJ904GR", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "GRENOBLE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6860.0, "ptra": 12750.0, "attelage": "", "statut": "En réparation"}, {"id": "FPTL-00067", "type": "FPTL", "immat": "GJ999GR", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "ECHIROLLES", "centre": "29 - SUD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6820.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTL-00068", "type": "FPTL", "immat": "GJ959WG", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "CREMIEU", "centre": "12 - PORTES DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 12000.0, "pv": 6820.0, "ptra": 12750.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00009", "type": "FPTSR", "immat": "BC256QG", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "BEAUREPAIRE", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15095.0, "pv": 8410.0, "ptra": 18595.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPTSR-00010", "type": "FPTSR", "immat": "BC064QG", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "VIZILLE", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15095.0, "pv": 8410.0, "ptra": 18595.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPTSR-00011", "type": "FPTSR", "immat": "BH702VK", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SAINT-LAURENT-DU-PONT", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15095.0, "pv": 8410.0, "ptra": 18595.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00012", "type": "FPTSR", "immat": "BH817VK", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "MORESTEL", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15095.0, "pv": 8410.0, "ptra": 18595.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00013", "type": "FPTSR", "immat": "BW096CY", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SAINT-GEOIRE-EN-VALDAINE", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15095.0, "pv": 7810.0, "ptra": 18595.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00014", "type": "FPTSR", "immat": "BZ509WR", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SAINT-EGREVE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15095.0, "pv": 7810.0, "ptra": 18595.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00015", "type": "FPTSR", "immat": "BZ586WR", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15095.0, "pv": 7810.0, "ptra": 18595.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00016", "type": "FPTSR", "immat": "BZ668WR", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "PONT-DE-CHERUY", "centre": "12 - PORTES DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 15095.0, "pv": 7810.0, "ptra": 18595.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00017", "type": "FPTSR", "immat": "CQ105GM", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "MONTALIEU-VERCIEU", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8940.0, "ptra": 19500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00018", "type": "FPTSR", "immat": "CQ167GM", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SAINT-JEAN-DE-BOURNAY", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8940.0, "ptra": 19500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00019", "type": "FPTSR", "immat": "CQ234GM", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "CHABONS", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8940.0, "ptra": 19500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00020", "type": "FPTSR", "immat": "CQ346GM", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "LE TOUVET", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8940.0, "ptra": 19500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00021", "type": "FPTSR", "immat": "DB792EX", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "LA TOUR-DU-PIN", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9060.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00022", "type": "FPTSR", "immat": "DB815EX", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SAINT-MARCELLIN", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9060.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00023", "type": "FPTSR", "immat": "DB835EX", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "PONTCHARRA", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9060.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00024", "type": "FPTSR", "immat": "DB857EX", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "LA MURE", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 9060.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00025", "type": "FPTSR", "immat": "ES121LX", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "BUREAU INTENDANCE", "centre": "SERVICE ORGANISATION DE FORMATION", "groupement": "GROUPEMENT FORMATION ET SPORT", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7995.0, "ptra": 17500.0, "attelage": "", "statut": "Formation"}, {"id": "FPTSR-00026", "type": "FPTSR", "immat": "ES151LX", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7995.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00027", "type": "FPTSR", "immat": "ES203LX", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SAINT-QUENTIN-FALLAVIER", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7995.0, "ptra": 17500.0, "attelage": "", "statut": "En réparation"}, {"id": "FPTSR-00028", "type": "FPTSR", "immat": "FC676MM", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SAINT-MARTIN-D'HERES", "centre": "32 - EST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7995.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00029", "type": "FPTSR", "immat": "FC373MM", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "ECHIROLLES", "centre": "29 - SUD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7995.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00030", "type": "FPTSR", "immat": "FC086MN", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7995.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00031", "type": "FPTSR", "immat": "FC959ME", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "LA COTE-SAINT-ANDRE", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7995.0, "ptra": 17500.0, "attelage": "", "statut": "Opérationel"}, {"id": "FPTSR-00032", "type": "FPTSR", "immat": "FS042XC", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "SAINT-ETIENNE-DE-SAINT-GEOIRS", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7992.0, "ptra": 17500.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "FPTSR-00033", "type": "FPTSR", "immat": "FT847AY", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7992.0, "ptra": 17500.0, "attelage": "MIXTE-0,75T", "statut": "En réparation"}, {"id": "FPTSR-00034", "type": "FPTSR", "immat": "FT506BR", "marque": "RENAULT", "modele": "MIDLUM 300.15", "caserne": "VILLARD-BONNOT", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 7992.0, "ptra": 17500.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "FPTSR-00035", "type": "FPTSR", "immat": "DS028EN", "marque": "RENAULT", "modele": "MIDLUM", "caserne": "MOIRANS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 16000.0, "pv": 8100.0, "ptra": 17500.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "FPTTU-00002", "type": "FPTTU", "immat": "408CQB", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "SAINT-HILAIRE-DU-ROSIER", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 15000.0, "pv": 7850.0, "ptra": 16500.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "FPTTU-00003", "type": "FPTTU", "immat": "525CGY", "marque": "RENAULT", "modele": "MIDLUM 270", "caserne": "IZEAUX", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 13000.0, "pv": 7580.0, "ptra": 14500.0, "attelage": "", "statut": "Opérationel"}, {"id": "PSE-00001", "type": "PSE", "immat": "BM179YY", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "CORRENCON-EN-VERCORS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 11990.0, "pv": 7180.0, "ptra": 12740.0, "attelage": "", "statut": "Opérationel"}, {"id": "PSE-00003", "type": "PSE", "immat": "BZ912PM", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "SAINT-PIERRE-DE-CHARTREUSE", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 11990.0, "pv": 7180.0, "ptra": 12740.0, "attelage": "", "statut": "Opérationel"}, {"id": "PSE-00004", "type": "PSE", "immat": "DG363AA", "marque": "RENAULT", "modele": "MIDLUM 220", "caserne": "LES DEUX-ALPES", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 11990.0, "pv": 7180.0, "ptra": 12740.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCE-00005", "type": "CPCE", "immat": "141CNB", "marque": "RENAULT", "modele": "MIDLUM 150", "caserne": "BUREAU INTENDANCE", "centre": "SERVICE ORGANISATION DE FORMATION", "groupement": "GROUPEMENT FORMATION ET SPORT", "classe": "> 4,5t", "ptac": 12000.0, "pv": 5300.0, "ptra": 15500.0, "attelage": "", "statut": "Formation"}, {"id": "CPCF-00002", "type": "CPCF", "immat": "706AVV", "marque": "IVECO", "modele": "190 E 30", "caserne": "DOMENE", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 19000.0, "pv": 9130.0, "ptra": 29000.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00004", "type": "CPCF", "immat": "197BAJ", "marque": "IVECO", "modele": "190 E 30", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 19000.0, "pv": 9070.0, "ptra": 29000.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00005", "type": "CPCF", "immat": "24BLS", "marque": "IVECO", "modele": "190 E 30", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 19000.0, "pv": 9010.0, "ptra": 40000.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00006", "type": "CPCF", "immat": "790BRN", "marque": "IVECO", "modele": "190 E 30", "caserne": "LA TOUR-DU-PIN", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 19000.0, "pv": 9100.0, "ptra": 40000.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00007", "type": "CPCF", "immat": "716BXM", "marque": "IVECO", "modele": "190 E 30", "caserne": "SASSENAGE", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 19000.0, "pv": 8980.0, "ptra": 40000.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "CPCF-00008", "type": "CPCF", "immat": "342CDR", "marque": "IVECO", "modele": "190 E 30", "caserne": "HEYRIEUX", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 19000.0, "pv": 9320.0, "ptra": 40000.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "CPCF-00009", "type": "CPCF", "immat": "711DHL", "marque": "RENAULT", "modele": "KERAX", "caserne": "ECHIROLLES", "centre": "29 - SUD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 26000.0, "pv": 13450.0, "ptra": 40000.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00010", "type": "CPCF", "immat": "AB985QV", "marque": "RENAULT", "modele": "KERAX", "caserne": "DOMENE", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 26000.0, "pv": 11815.0, "ptra": 29500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00011", "type": "CPCF", "immat": "BB990NG", "marque": "RENAULT", "modele": "KERAX", "caserne": "LE PEAGE-DE-ROUSSILLON", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 26070.0, "pv": 11515.0, "ptra": 40070.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00012", "type": "CPCF", "immat": "CF419ZH", "marque": "RENAULT", "modele": "KERAX", "caserne": "BEAUCROISSANT", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 26000.0, "pv": 11560.0, "ptra": 29500.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00013", "type": "CPCF", "immat": "EM418EC", "marque": "MERCEDES", "modele": "AROCS", "caserne": "SAINT-MARTIN-D'HERES", "centre": "32 - EST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "> 4,5t", "ptac": 26250.0, "pv": 12206.0, "ptra": 44250.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00014", "type": "CPCF", "immat": "EM108FY", "marque": "MERCEDES", "modele": "AROCS", "caserne": "SAINT-QUENTIN-FALLAVIER", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "> 4,5t", "ptac": 26250.0, "pv": 12206.0, "ptra": 44250.0, "attelage": "", "statut": "Opérationel"}, {"id": "CPCF-00015", "type": "CPCF", "immat": "FG240XS", "marque": "MERCEDES", "modele": "AROCS", "caserne": "BUREAU MECANIQUE VL/PL/NAUTIQUE", "centre": "SERVICE MAINTENANCE VEHICULES", "groupement": "GROUPEMENT EQUIPEMENTS", "classe": "> 4,5t", "ptac": 26000.0, "pv": 12040.0, "ptra": 44000.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTTU-00003", "type": "VLTTTU", "immat": "442AWX", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "LES ADRETS", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3500.0, "pv": 2400.0, "ptra": 7000.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLTTTU-00065", "type": "VLTTTU", "immat": "501AVQ", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "SAINT-MURY-MONTEYMOND", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3500.0, "pv": 2500.0, "ptra": 7000.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTTU-00066", "type": "VLTTTU", "immat": "502AVQ", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "CORRENCON-EN-VERCORS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3500.0, "pv": 2500.0, "ptra": 7000.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTTU-00067", "type": "VLTTTU", "immat": "493AVQ", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "THEYS", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3500.0, "pv": 2500.0, "ptra": 7000.0, "attelage": "MIXTE-1,5T", "statut": "Opérationel"}, {"id": "VLTTTU-00068", "type": "VLTTTU", "immat": "498AVQ", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "VALBONNAIS", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3500.0, "pv": 2500.0, "ptra": 7000.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00023", "type": "VLHR", "immat": "BZ204NL", "marque": "DACIA", "modele": "DUSTER", "caserne": "CORRENCON-EN-VERCORS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1386.0, "ptra": 3344.0, "attelage": "BOULE-1.5T", "statut": "Opérationel"}, {"id": "VLHR-00024", "type": "VLHR", "immat": "BZ285NK", "marque": "DACIA", "modele": "DUSTER", "caserne": "CHAMROUSSE", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1386.0, "ptra": 3344.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLHR-00025", "type": "VLHR", "immat": "BZ398NL", "marque": "DACIA", "modele": "DUSTER", "caserne": "LA CHAPELLE-DE-SURIEU", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1386.0, "ptra": 3344.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00026", "type": "VLHR", "immat": "BZ451NL", "marque": "DACIA", "modele": "DUSTER", "caserne": "VILLARD-DE-LANS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1386.0, "ptra": 3344.0, "attelage": "BOULE-1.5T", "statut": "Opérationel"}, {"id": "VLHR-00027", "type": "VLHR", "immat": "BZ470NL", "marque": "DACIA", "modele": "DUSTER", "caserne": "GRESSE-EN-VERCORS", "centre": "26 - TRIEVES", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1386.0, "ptra": 3344.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00028", "type": "VLHR", "immat": "CM761FT", "marque": "DACIA", "modele": "DUSTER", "caserne": "SAINT-NIZIER-DU-MOUCHEROTTE", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1376.0, "ptra": 3344.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLHR-00029", "type": "VLHR", "immat": "CM008FT", "marque": "DACIA", "modele": "DUSTER", "caserne": "CHAPAREILLAN", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1376.0, "ptra": 3344.0, "attelage": "BOULE-1.5T", "statut": "Opérationel"}, {"id": "VLHR-00030", "type": "VLHR", "immat": "CR556TT", "marque": "DACIA", "modele": "DUSTER", "caserne": "HUEZ", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1375.0, "ptra": 3344.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00031", "type": "VLHR", "immat": "CZ672TD", "marque": "DACIA", "modele": "DUSTER", "caserne": "TULLINS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1294.0, "ptra": 3344.0, "attelage": "BOULE-1.5T", "statut": "Opérationel"}, {"id": "VLHR-00032", "type": "VLHR", "immat": "CZ669TD", "marque": "DACIA", "modele": "DUSTER", "caserne": "LE PLATEAU DES PETITES ROCHES", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1844.0, "pv": 1294.0, "ptra": 3344.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00033", "type": "VLHR", "immat": "DK969TV", "marque": "DACIA", "modele": "DUSTER", "caserne": "LES ABRETS", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1360.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00034", "type": "VLHR", "immat": "DK979TV", "marque": "DACIA", "modele": "DUSTER", "caserne": "VILLARD-BONNOT", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1360.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00036", "type": "VLHR", "immat": "EE853MG", "marque": "DACIA", "modele": "DUSTER", "caserne": "THEYS", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1356.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00037", "type": "VLHR", "immat": "EX580ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "DOMENE", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00038", "type": "VLHR", "immat": "EX583ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "LIVET-ET-GAVET", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00039", "type": "VLHR", "immat": "EX584ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "CHABONS", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00040", "type": "VLHR", "immat": "EX587ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "MIRIBEL-LES-ECHELLES", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00041", "type": "VLHR", "immat": "EX590ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "SAINT-MURY-MONTEYMOND", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00042", "type": "VLHR", "immat": "EX591ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "VIZILLE", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00043", "type": "VLHR", "immat": "EX592ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00044", "type": "VLHR", "immat": "EX593ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "VALBONNAIS", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00045", "type": "VLHR", "immat": "EX594ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "MENS", "centre": "26 - TRIEVES", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00046", "type": "VLHR", "immat": "EX597ET", "marque": "DACIA", "modele": "DUSTER", "caserne": "PONT-EN-ROYANS", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1875.0, "pv": 1369.0, "ptra": 3375.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00047", "type": "VLHR", "immat": "FM270XX", "marque": "DACIA", "modele": "DUSTER", "caserne": "SERVICE DU SUPPORT AUX UTILISATEURS", "centre": "SERVICE DU SUPPORT AUX UTILISATEURS", "groupement": "GROUPEMENT DE L'APPUI NUMERIQUE", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1453.0, "ptra": 3433.0, "attelage": "ANNEAU-1,5T", "statut": "Opérationel"}, {"id": "VLHR-00048", "type": "VLHR", "immat": "FM284XX", "marque": "DACIA", "modele": "DUSTER", "caserne": "SAINT-MARCELLIN", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1453.0, "ptra": 3433.0, "attelage": "BOULE-1.5T", "statut": "Opérationel"}, {"id": "VLHR-00049", "type": "VLHR", "immat": "FR226SQ", "marque": "DACIA", "modele": "DUSTER", "caserne": "SAINT-LAURENT-DU-PONT", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00050", "type": "VLHR", "immat": "FW890MF", "marque": "DACIA", "modele": "DUSTER", "caserne": "SAINT-ISMIER", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00051", "type": "VLHR", "immat": "FW090VT", "marque": "DACIA", "modele": "DUSTER", "caserne": "LES DEUX-ALPES", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00052", "type": "VLHR", "immat": "FW099VT", "marque": "DACIA", "modele": "DUSTER", "caserne": "AUTRANS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLHR-00053", "type": "VLHR", "immat": "FW134VT", "marque": "DACIA", "modele": "DUSTER", "caserne": "LE BOURG-D'OISANS", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLHR-00054", "type": "VLHR", "immat": "FW170VT", "marque": "DACIA", "modele": "DUSTER", "caserne": "LE TOUVET", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00055", "type": "VLHR", "immat": "FW216VT", "marque": "DACIA", "modele": "DUSTER", "caserne": "SAINT-LAURENT-DU-PONT", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00056", "type": "VLHR", "immat": "FW220VT", "marque": "DACIA", "modele": "DUSTER", "caserne": "CORPS", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLHR-00057", "type": "VLHR", "immat": "FW222VT", "marque": "DACIA", "modele": "DUSTER", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLHR-00058", "type": "VLHR", "immat": "FW255VT", "marque": "DACIA", "modele": "DUSTER", "caserne": "MORESTEL", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1933.0, "pv": 1405.0, "ptra": 3433.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00059", "type": "VLHR", "immat": "GM977LS", "marque": "DACIA", "modele": "DUSTER", "caserne": "VIZILLE", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00060", "type": "VLHR", "immat": "GM003LT", "marque": "DACIA", "modele": "DUSTER", "caserne": "LA MURE", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "BOULE-0,75T", "statut": "Opérationel"}, {"id": "VLHR-00061", "type": "VLHR", "immat": "GM636YD", "marque": "DACIA", "modele": "DUSTER", "caserne": "MONESTIER-DE-CLERMONT", "centre": "26 - TRIEVES", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00062", "type": "VLHR", "immat": "GK760LE", "marque": "DACIA", "modele": "DUSTER", "caserne": "CROLLES", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00063", "type": "VLHR", "immat": "GP801QJ", "marque": "DACIA", "modele": "DUSTER", "caserne": "PONT-DE-CHERUY", "centre": "12 - PORTES DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00064", "type": "VLHR", "immat": "GN555LB", "marque": "DACIA", "modele": "DUSTER", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00065", "type": "VLHR", "immat": "GN560LB", "marque": "DACIA", "modele": "DUSTER", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00066", "type": "VLHR", "immat": "GN580LB", "marque": "DACIA", "modele": "DUSTER", "caserne": "BUREAU INTENDANCE", "centre": "SERVICE ORGANISATION DE FORMATION", "groupement": "GROUPEMENT FORMATION ET SPORT", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00067", "type": "VLHR", "immat": "GN613LB", "marque": "DACIA", "modele": "DUSTER", "caserne": "BUREAU GESTION DE PARC =>", "centre": "SERVICE ETUDES TECHNIQUES ET GESTION DE PARC", "groupement": "GROUPEMENT EQUIPEMENTS", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00068", "type": "VLHR", "immat": "GN618LB", "marque": "DACIA", "modele": "DUSTER", "caserne": "BUREAU GESTION DE PARC =>", "centre": "SERVICE ETUDES TECHNIQUES ET GESTION DE PARC", "groupement": "GROUPEMENT EQUIPEMENTS", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00069", "type": "VLHR", "immat": "GS361HG", "marque": "DACIA", "modele": "DUSTER", "caserne": "BUREAU GESTION DE PARC =>", "centre": "SERVICE ETUDES TECHNIQUES ET GESTION DE PARC", "groupement": "GROUPEMENT EQUIPEMENTS", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00070", "type": "VLHR", "immat": "GS363HG", "marque": "DACIA", "modele": "DUSTER", "caserne": "BUREAU GESTION DE PARC =>", "centre": "SERVICE ETUDES TECHNIQUES ET GESTION DE PARC", "groupement": "GROUPEMENT EQUIPEMENTS", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00071", "type": "VLHR", "immat": "GS364HG", "marque": "DACIA", "modele": "DUSTER", "caserne": "VILLARD-DE-LANS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "BOULE-1.5T", "statut": "Opérationel"}, {"id": "VLHR-00072", "type": "VLHR", "immat": "GS371HG", "marque": "DACIA", "modele": "DUSTER", "caserne": "LA TOUR-DU-PIN", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00073", "type": "VLHR", "immat": "GS390HG", "marque": "DACIA", "modele": "DUSTER", "caserne": "PONTCHARRA", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00074", "type": "VLHR", "immat": "GS397HG", "marque": "DACIA", "modele": "DUSTER", "caserne": "MOIRANS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00075", "type": "VLHR", "immat": "GS463JJ", "marque": "DACIA", "modele": "DUSTER", "caserne": "VAULNAVEYS LE HAUT", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00076", "type": "VLHR", "immat": "GS071KA", "marque": "DACIA", "modele": "DUSTER", "caserne": "LE PEAGE-DE-ROUSSILLON", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00077", "type": "VLHR", "immat": "GS191PE", "marque": "DACIA", "modele": "DUSTER", "caserne": "SAINT-ETIENNE-DE-SAINT-GEOIRS", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00078", "type": "VLHR", "immat": "GS783TT", "marque": "DACIA", "modele": "DUSTER", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00079", "type": "VLHR", "immat": "GS787TT", "marque": "DACIA", "modele": "DUSTER", "caserne": "LE BOURG-D'OISANS", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLHR-00080", "type": "VLHR", "immat": "GS824TT", "marque": "DACIA", "modele": "DUSTER", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1949.0, "pv": 1443.0, "ptra": 3449.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTC-00004", "type": "VLTTC", "immat": "46CHP", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1825.0, "ptra": 6050.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTC-00005", "type": "VLTTC", "immat": "51CHP", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "GRENOBLE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1825.0, "ptra": 6050.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTC-00006", "type": "VLTTC", "immat": "53CHP", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "MONTALIEU-VERCIEU", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1825.0, "ptra": 6050.0, "attelage": "BOULE-3,5T", "statut": "Opérationel"}, {"id": "VLTTC-00007", "type": "VLTTC", "immat": "55CHP", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "SAINT-LAURENT-DU-PONT", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1825.0, "ptra": 6050.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLTTC-00008", "type": "VLTTC", "immat": "56CHP", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "MONTFERRAT", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1825.0, "ptra": 6050.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTC-00009", "type": "VLTTC", "immat": "160CJD", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "LE SAPPEY-EN-CHARTREUSE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1825.0, "ptra": 6050.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTC-00010", "type": "VLTTC", "immat": "161CJD", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "LE PEAGE-DE-ROUSSILLON", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1825.0, "ptra": 6050.0, "attelage": "MIXTE-0,375T", "statut": "Opérationel"}, {"id": "VLTTC-00011", "type": "VLTTC", "immat": "588CPY", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "VINAY", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1795.0, "ptra": 6050.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTC-00012", "type": "VLTTC", "immat": "593CPY", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "LES AVENIERES", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1795.0, "ptra": 6050.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTC-00013", "type": "VLTTC", "immat": "599CPY", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2550.0, "pv": 1795.0, "ptra": 6050.0, "attelage": "MIXTE-0,375T", "statut": "Opérationel"}, {"id": "VLTTC-00041", "type": "VLTTC", "immat": "6085ZT", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "LE PLATEAU DES PETITES ROCHES", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2400.0, "pv": 1671.0, "ptra": 5500.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTC-00051", "type": "VLTTC", "immat": "486AYV", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "SAINT-EGREVE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2400.0, "pv": 1671.0, "ptra": 5500.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTL-00002", "type": "VLTTL", "immat": "169AKA", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "VAULNAVEYS LE HAUT", "centre": "25 - ROMANCHE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1979.0, "ptra": 6450.0, "attelage": "MIXTE", "statut": "Opérationel"}, {"id": "VLTTL-00053", "type": "VLTTL", "immat": "103BDZ", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "SAINT-PIERRE-DE-CHARTREUSE", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1945.0, "ptra": 6450.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTL-00054", "type": "VLTTL", "immat": "104BDZ", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "ALLEVARD", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1845.0, "ptra": 6450.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTL-00056", "type": "VLTTL", "immat": "543BHG", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "LE BOURG-D'OISANS", "centre": "27 - OISANS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1845.0, "ptra": 6450.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTL-00057", "type": "VLTTL", "immat": "360BJP", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "SAINT-HILAIRE-DU-ROSIER", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1845.0, "ptra": 6450.0, "attelage": "MIXTE-3T", "statut": "Opérationel"}, {"id": "VLTTL-00059", "type": "VLTTL", "immat": "736BPR", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "CROLLES", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1845.0, "ptra": 6450.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTL-00060", "type": "VLTTL", "immat": "738BPR", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "SAINT-JEAN-DE-BOURNAY", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1845.0, "ptra": 6450.0, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTL-00062", "type": "VLTTL", "immat": "239BWM", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "LA MURE", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 6450.0, "ptra": null, "attelage": "MIXTE-3,5T", "statut": "Opérationel"}, {"id": "VLTTL-00063", "type": "VLTTL", "immat": "826CTN", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "MONESTIER-DE-CLERMONT", "centre": "26 - TRIEVES", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1850.0, "ptra": 6450.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTL-00064", "type": "VLTTL", "immat": "828CTN", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "ROYBON", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 2950.0, "pv": 1850.0, "ptra": 6450.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTL-00069", "type": "VLTTL", "immat": "DR189QR", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "MOIRANS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3050.0, "pv": 1965.0, "ptra": 6550.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTL-00070", "type": "VLTTL", "immat": "DY848PG", "marque": "LAND ROVER", "modele": "DEFENDER", "caserne": "SAINT-MARTIN-D'HERES", "centre": "32 - EST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3050.0, "pv": 2030.0, "ptra": 6550.0, "attelage": "", "statut": "Opérationel"}, {"id": "VLTTL-00072", "type": "VLTTL", "immat": "FL607KP", "marque": "TOYOTA", "modele": "HILUX", "caserne": "SAINT-QUENTIN-FALLAVIER", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 3150.0, "pv": 2065.0, "ptra": 5850.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTL-00076", "type": "VLTTL", "immat": "GY389EH", "marque": "TOYOTA", "modele": "HILUX", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 3210.0, "pv": 2206.0, "ptra": 6300.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTL-00077", "type": "VLTTL", "immat": "GY319EH", "marque": "TOYOTA", "modele": "HILUX", "caserne": "BEAUREPAIRE", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 3210.0, "pv": 2206.0, "ptra": 6300.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTL-00078", "type": "VLTTL", "immat": "GY988EF", "marque": "TOYOTA", "modele": "HILUX", "caserne": "SAINT-GEOIRE-EN-VALDAINE", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 3210.0, "pv": 2206.0, "ptra": 6300.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTL-00079", "type": "VLTTL", "immat": "GV584YK", "marque": "INEOS", "modele": "GRENADIER", "caserne": "SAINT-ETIENNE-DE-SAINT-GEOIRS", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 3500.0, "pv": 2740.0, "ptra": 7000.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTL-00080", "type": "VLTTL", "immat": "GV814YK", "marque": "INEOS", "modele": "GRENADIER", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3500.0, "pv": 2740.0, "ptra": 7000.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTL-00081", "type": "VLTTL", "immat": "HB069QE", "marque": "TOYOTA", "modele": "HILUX", "caserne": "PONTCHARRA", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": null, "pv": null, "ptra": null, "attelage": "OUI MIXTE", "statut": "Opérationel"}, {"id": "VLTTM-00071", "type": "VLTTM", "immat": "FX884EW", "marque": "TOYOTA", "modele": "HILUX", "caserne": "ECHIROLLES", "centre": "29 - SUD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3210.0, "pv": 2105.0, "ptra": 5850.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTM-00073", "type": "VLTTM", "immat": "GY353EH", "marque": "TOYOTA", "modele": "HILUX", "caserne": "SAINT-PIERRE-DE-CHARTREUSE", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3210.0, "pv": 2206.0, "ptra": 6300.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTM-00074", "type": "VLTTM", "immat": "GY484EH", "marque": "TOYOTA", "modele": "HILUX", "caserne": "VALBONNAIS", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3210.0, "pv": 2206.0, "ptra": 6300.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "VLTTM-00075", "type": "VLTTM", "immat": "GY086EG", "marque": "TOYOTA", "modele": "HILUX", "caserne": "SAINT-MURY-MONTEYMOND", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 3210.0, "pv": 2206.0, "ptra": 6300.0, "attelage": "MIXTE-0,75T", "statut": "Opérationel"}, {"id": "RGRIMP-00001", "type": "RGRIMP", "immat": "FG725LC", "marque": "MANDRINOISE", "modele": "", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": 225.0, "ptra": null, "attelage": "", "statut": "Opérationel"}];
+const TRAILERS = [{"id": "RB-00010", "type": "RB", "immat": "209BGH", "marque": "R.S.A.", "modele": "", "caserne": "SAINT-HILAIRE-DU-ROSIER", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 650.0, "pv": 160.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00021", "type": "RB", "immat": "CY549WW", "marque": "SUN WAY", "modele": "", "caserne": "PONTCHARRA", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": 200.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00022", "type": "RB", "immat": "DE569SM", "marque": "SUN WAY", "modele": "", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 200.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00023", "type": "RB", "immat": "DF882VA", "marque": "SUN WAY", "modele": "", "caserne": "LES AVENIERES", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 200.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00024", "type": "RB", "immat": "DR485SG", "marque": "SATELLITE", "modele": "", "caserne": "LE PEAGE-DE-ROUSSILLON", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1500.0, "pv": 332.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00025", "type": "RB", "immat": "DC175GZ", "marque": "SUN WAY", "modele": "", "caserne": "VINAY", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 900.0, "pv": 270.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00026", "type": "RB", "immat": "", "marque": "SUN WAY", "modele": "", "caserne": "GRENOBLE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 500.0, "pv": 152.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00027", "type": "RB", "immat": "FH094WT", "marque": "SUN WAY", "modele": "", "caserne": "MONTALIEU-VERCIEU", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1000.0, "pv": 340.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00028", "type": "RB", "immat": "FH143WT", "marque": "SUN WAY", "modele": "", "caserne": "LA MURE", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1000.0, "pv": 340.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00029", "type": "RB", "immat": "FH224WT", "marque": "SUN WAY", "modele": "", "caserne": "MONTFERRAT", "centre": "18 - VALS DU DAUPHINE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1000.0, "pv": 340.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00030", "type": "RB", "immat": "FP918FZ", "marque": "SUN WAY", "modele": "", "caserne": "GRENOBLE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 650.0, "pv": 150.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00031", "type": "RB", "immat": "FP011MF", "marque": "SUN WAY", "modele": "", "caserne": "SAINT-EGREVE", "centre": "30 - NORD AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1000.0, "pv": 340.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RB-00032", "type": "RB", "immat": "HD984NC", "marque": "NAUTILUS", "modele": "", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "", "ptac": null, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RCAR-00001", "type": "RCAR", "immat": "4609XG", "marque": "ADOC", "modele": "", "caserne": "MOIRANS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": null, "pv": 460.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RCSD-00001", "type": "RCSD", "immat": "", "marque": "KAESER", "modele": "M20", "caserne": "MOIRANS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "NC", "ptac": null, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00004", "type": "RMP", "immat": "806BWR", "marque": "SIDES", "modele": "2015", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00005", "type": "RMP", "immat": "819BWR", "marque": "SIDES", "modele": "2015", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00006", "type": "RMP", "immat": "827BWR", "marque": "SIDES", "modele": "2015", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00007", "type": "RMP", "immat": "833BWR", "marque": "SIDES", "modele": "2015", "caserne": "SAINT-ETIENNE-DE-SAINT-GEOIRS", "centre": "17 - BIEVRE CHAMBARAN", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00008", "type": "RMP", "immat": "780BXH", "marque": "SIDES", "modele": "", "caserne": "SAINT-LAURENT-DU-PONT", "centre": "21 - CHARTREUSE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": 540.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00009", "type": "RMP", "immat": "583CJP", "marque": "SIDES", "modele": "2015", "caserne": "SAINT-MARCELLIN", "centre": "20 - SUD GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00010", "type": "RMP", "immat": "585CJP", "marque": "SIDES", "modele": "2015", "caserne": "TULLINS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00011", "type": "RMP", "immat": "588CJP", "marque": "SIDES", "modele": "2015", "caserne": "PONTCHARRA", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00012", "type": "RMP", "immat": "589CJP", "marque": "SIDES", "modele": "2015", "caserne": "LA MURE", "centre": "28 - MATHEYSINE", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00013", "type": "RMP", "immat": "591CJP", "marque": "SIDES", "modele": "2015", "caserne": "VILLARD-DE-LANS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00014", "type": "RMP", "immat": "133CVC", "marque": "SIDES", "modele": "2015", "caserne": "LE PEAGE-DE-ROUSSILLON", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 630.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00015", "type": "RMP", "immat": "135CVC", "marque": "SIDES", "modele": "2015", "caserne": "MONTALIEU-VERCIEU", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 630.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00016", "type": "RMP", "immat": "141CVC", "marque": "SIDES", "modele": "2015", "caserne": "HEYRIEUX", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 630.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00017", "type": "RMP", "immat": "106CBA", "marque": "SIDES", "modele": "", "caserne": "VEYRINS-THUELLIN", "centre": "11 - HAUT RHONE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 540.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMP-00019", "type": "RMP", "immat": "517BQK", "marque": "MANDRINOISE", "modele": "", "caserne": "ALLEVARD", "centre": "23 - HAUT GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": 540.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMPGP-00001", "type": "RMPGP", "immat": "EB064KE", "marque": "SARIS", "modele": "", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1650.0, "pv": 505.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RMPGP-00002", "type": "RMPGP", "immat": "EB078KE", "marque": "SARIS", "modele": "", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 1650.0, "pv": 505.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RPO-00010", "type": "RPO", "immat": "AK164PM", "marque": "GALLIN", "modele": "", "caserne": "CROLLES", "centre": "24 - MOYEN GRESIVAUDAN", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": 160.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RPO-00011", "type": "RPO", "immat": "AK657PM", "marque": "GALLIN", "modele": "", "caserne": "MOIRANS", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": 160.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RPO-00012", "type": "RPO", "immat": "AK862PM", "marque": "GALLIN", "modele": "", "caserne": "SEYSSINET-PARISET", "centre": "31 - OUEST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": 160.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RPO-00013", "type": "RPO", "immat": "AK726PM", "marque": "GALLIN", "modele": "", "caserne": "LE PEAGE-DE-ROUSSILLON", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 160.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RPO-00014", "type": "RPO", "immat": "AM229SZ", "marque": "GALLIN", "modele": "", "caserne": "VIENNE", "centre": "14 - PAYS VIENNOIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 160.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RPO-00015", "type": "RPO", "immat": "AM324SZ", "marque": "GALLIN", "modele": "", "caserne": "BOURGOIN-JALLIEU", "centre": "16 - PORTES DE L'ISERE", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 160.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RPO-00016", "type": "RPO", "immat": "BH309BH", "marque": "GALLIN", "modele": "", "caserne": "BEAUREPAIRE", "centre": "15 - PAYS ROUSSILLONNAIS", "groupement": "GROUPEMENT NORD", "classe": "< 3,5t", "ptac": 750.0, "pv": 670.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RPO-00017", "type": "RPO", "immat": "BH392BH", "marque": "GALLIN", "modele": "", "caserne": "SAINT-MARTIN-D'HERES", "centre": "32 - EST AGGLO", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 750.0, "pv": 670.0, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RTU-00001", "type": "RTU", "immat": "FG-237-YN", "marque": "", "modele": "", "caserne": "VOIRON", "centre": "19 - PAYS VOIRONNAIS", "groupement": "GROUPEMENT SUD", "classe": "NC", "ptac": null, "pv": null, "ptra": null, "attelage": "", "statut": "Opérationel"}, {"id": "RULTT-00001", "type": "RULTT", "immat": "GB941SY", "marque": "LIDER", "modele": "", "caserne": "VILLARD-DE-LANS", "centre": "22 - VERCORS", "groupement": "GROUPEMENT SUD", "classe": "< 3,5t", "ptac": 1500.0, "pv": 350.0, "ptra": null, "attelage": "", "statut": "Opérationel"}];
+
+let selectedVehicle = null;
+let selectedTrailer = null;
+let vehTypeFilter = '';
+let vehGrpFilter = '';
+let vehOnlyAttlage = false;
+let vehOnlyOp = false;
+let remTypeFilter = '';
+
+// ── Permit descriptions ──────────────────────────────────
+const PERMIT_INFO = {
+  'B':   { desc: 'Remorque PTAC ≤ 750 kg', color: 'permit-B' },
+  'B96': { desc: 'Formation B96 obligatoire\nEnsemble ≤ 4 250 kg', color: 'permit-B96' },
+  'BE':  { desc: 'Permis remorque\nEnsemble > 4 250 kg', color: 'permit-BE' },
+  'C':   { desc: 'Poids lourd sans remorque\nou remorque PTAC ≤ 750 kg', color: 'permit-C' },
+  'CE':  { desc: 'Poids lourd avec remorque\nPTAC > 750 kg', color: 'permit-CE' },
+  'NC':  { desc: 'Données insuffisantes', color: 'permit-NC' },
+};
+
+// ── Compute permit ───────────────────────────────────────
+function computePermit(vPTAC, rPTAC) {
+  if (!vPTAC || !rPTAC) return 'NC';
+  const total = vPTAC + rPTAC;
+  if (vPTAC <= 3500) {
+    if (rPTAC <= 750) return 'B';
+    if (total <= 4250) return 'B96';
+    return 'BE';
+  } else {
+    // PL
+    if (rPTAC <= 750) return 'C';
+    return 'CE';
+  }
+}
+
+// ── Format kg ────────────────────────────────────────────
+function kg(v) {
+  if (!v && v !== 0) return '—';
+  return Math.round(v).toLocaleString('fr-FR') + ' kg';
+}
+
+// ── Build vehicle option label ───────────────────────────
+function vehLabel(v) {
+  const att = v.attelage ? ` ⛓${v.attelage}` : '';
+  const loc = v.caserne || v.centre || '';
+  return `[${v.id}] ${v.marque} ${v.modele} — ${loc}${att}`;
+}
+
+function remLabel(r) {
+  const loc = r.caserne || r.centre || '';
+  const ptac = r.ptac ? ` PTAC ${Math.round(r.ptac)}kg` : '';
+  return `[${r.id}] ${r.type} ${r.marque} — ${loc}${ptac}`;
+}
+
+// ── Filter & populate vehicle select ────────────────────
+function populateVehicles() {
+  const q = document.getElementById('veh-search').value.toLowerCase();
+  const sel = document.getElementById('veh-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Sélectionner un véhicule —</option>';
+
+  let count = 0;
+  VEHICLES.forEach((v, i) => {
+    const searchStr = `${v.id} ${v.immat} ${v.marque} ${v.modele} ${v.caserne} ${v.centre} ${v.type} ${v.attelage}`.toLowerCase();
+    if (q && !searchStr.includes(q)) return;
+    if (vehOnlyAttlage && !v.attelage) return;
+    if (vehOnlyOp && v.statut !== 'Opérationel') return;
+    if (vehGrpFilter && v.groupement !== vehGrpFilter) return;
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = vehLabel(v);
+    if (String(i) === prev) opt.selected = true;
+    sel.appendChild(opt);
+    count++;
+  });
+
+  document.getElementById('veh-count-badge').textContent = count;
+}
+
+function filterVehicles() { populateVehicles(); }
+
+function setVehFilter(type, btn) {
+  document.querySelectorAll('#veh-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  vehGrpFilter = '';
+  vehOnlyAttlage = type === 'attelage';
+  vehOnlyOp = type === 'operational';
+  populateVehicles();
+}
+
+function setVehFilterGrp(grp, btn) {
+  document.querySelectorAll('#veh-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  vehGrpFilter = grp;
+  vehOnlyAttlage = false;
+  vehOnlyOp = false;
+  populateVehicles();
+}
+
+// ── Filter & populate trailer select ────────────────────
+function populateTrailers() {
+  const q = document.getElementById('rem-search').value.toLowerCase();
+  const sel = document.getElementById('rem-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Sélectionner une remorque —</option>';
+
+  let count = 0;
+  TRAILERS.forEach((r, i) => {
+    const searchStr = `${r.id} ${r.immat} ${r.marque} ${r.type} ${r.caserne} ${r.centre}`.toLowerCase();
+    if (q && !searchStr.includes(q)) return;
+    if (remTypeFilter && r.type !== remTypeFilter) return;
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = remLabel(r);
+    if (String(i) === prev) opt.selected = true;
+    sel.appendChild(opt);
+    count++;
+  });
+
+  document.getElementById('rem-count-badge').textContent = count;
+}
+
+function filterTrailers() { populateTrailers(); }
+
+function setRemFilter(type, btn) {
+  document.querySelectorAll('#rem-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  remTypeFilter = type;
+  populateTrailers();
+}
+
+// ── Vehicle selected ─────────────────────────────────────
+function onVehicleSelect() {
+  const idx = document.getElementById('veh-select').value;
+  selectedVehicle = idx !== '' ? VEHICLES[parseInt(idx)] : null;
+  renderVehInfo();
+  renderResult();
+}
+
+function renderVehInfo() {
+  const el = document.getElementById('veh-info');
+  if (!selectedVehicle) { el.innerHTML = ''; return; }
+  const v = selectedVehicle;
+  const attBadge = v.attelage
+    ? `<span class="attelage-badge has">⛓ ${v.attelage}</span>`
+    : `<span class="attelage-badge no">⚠ Pas d'attelage renseigné</span>`;
+  el.innerHTML = `
+    <div class="info-grid">
+      <div class="info-cell"><div class="label">Identifiant</div><div class="value highlight">${v.id}</div></div>
+      <div class="info-cell"><div class="label">Immatriculation</div><div class="value">${v.immat || '—'}</div></div>
+      <div class="info-cell"><div class="label">Type</div><div class="value">${v.type}</div></div>
+      <div class="info-cell"><div class="label">Marque / Modèle</div><div class="value">${v.marque} ${v.modele}</div></div>
+      <div class="info-cell"><div class="label">Caserne</div><div class="value">${v.caserne || '—'}</div></div>
+      <div class="info-cell"><div class="label">Groupement</div><div class="value">${(v.groupement||'').replace('GROUPEMENT ','')}</div></div>
+      <div class="info-cell"><div class="label">PTAC</div><div class="value highlight">${kg(v.ptac)}</div></div>
+      <div class="info-cell"><div class="label">PV (poids vide)</div><div class="value">${kg(v.pv)}</div></div>
+      <div class="info-cell"><div class="label">PTRA</div><div class="value">${kg(v.ptra)}</div></div>
+    </div>
+    ${attBadge}
+  `;
+}
+
+// ── Trailer selected ─────────────────────────────────────
+function onTrailerSelect() {
+  const idx = document.getElementById('rem-select').value;
+  selectedTrailer = idx !== '' ? TRAILERS[parseInt(idx)] : null;
+  renderRemInfo();
+  renderResult();
+}
+
+function renderRemInfo() {
+  const el = document.getElementById('rem-info');
+  if (!selectedTrailer) { el.innerHTML = ''; return; }
+  const r = selectedTrailer;
+  const cu = (r.ptac && r.pv) ? (r.ptac - r.pv) : null;
+  el.innerHTML = `
+    <div class="info-grid">
+      <div class="info-cell"><div class="label">Identifiant</div><div class="value highlight">${r.id}</div></div>
+      <div class="info-cell"><div class="label">Immatriculation</div><div class="value">${r.immat || '—'}</div></div>
+      <div class="info-cell"><div class="label">Type</div><div class="value">${r.type}</div></div>
+      <div class="info-cell"><div class="label">Marque / Modèle</div><div class="value">${r.marque} ${r.modele || ''}</div></div>
+      <div class="info-cell"><div class="label">Caserne</div><div class="value">${r.caserne || '—'}</div></div>
+      <div class="info-cell"><div class="label">Centre</div><div class="value">${r.centre || '—'}</div></div>
+      <div class="info-cell"><div class="label">PTAC</div><div class="value highlight">${kg(r.ptac)}</div></div>
+      <div class="info-cell"><div class="label">PV (poids vide)</div><div class="value">${kg(r.pv)}</div></div>
+      <div class="info-cell"><div class="label">Charge utile</div><div class="value ok">${kg(cu)}</div></div>
+    </div>
+  `;
+}
+
+// ── Render result ────────────────────────────────────────
+function renderResult() {
+  const panel = document.getElementById('result-panel');
+  const empty = document.getElementById('result-empty');
+  const content = document.getElementById('result-content');
+
+  if (!selectedVehicle || !selectedTrailer) {
+    empty.style.display = '';
+    content.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  content.style.display = '';
+
+  const v = selectedVehicle;
+
+  // Types ne pouvant pas tracter de remorque
+  const NO_TOWING_TYPES = ['FPTL'];
+  if (NO_TOWING_TYPES.includes(v.type)) {
+    document.getElementById('r-ptac-veh').textContent = kg(v.ptac);
+    document.getElementById('r-ptac-rem').textContent = '—';
+    document.getElementById('r-total').textContent = '—';
+    document.getElementById('r-ptra').textContent = '—';
+    document.getElementById('r-cu').textContent = '—';
+    const badge = document.getElementById('permit-badge');
+    badge.className = 'permit-badge permit-NC';
+    document.getElementById('permit-code').textContent = '—';
+    document.getElementById('permit-desc').textContent = '';
+    const alert = document.getElementById('result-alert');
+    alert.className = 'alert-strip err';
+    alert.innerHTML = "⛔ Le type <strong>" + v.type + "</strong> n'est pas autorisé à tracter une remorque";
+    return;
+  }
+
+  const r = selectedTrailer;
+  const total = (v.ptac && r.ptac) ? v.ptac + r.ptac : null;
+  const cu = (r.ptac && r.pv) ? (r.ptac - r.pv) : null;
+
+  // PTRA check
+  let ptraOk = true;
+  if (v.ptra && total) ptraOk = total <= v.ptra;
+
+  const permit = computePermit(v.ptac, r.ptac);
+  const info = PERMIT_INFO[permit] || PERMIT_INFO['NC'];
+
+  document.getElementById('r-ptac-veh').textContent = kg(v.ptac);
+  document.getElementById('r-ptac-rem').textContent = kg(r.ptac);
+  document.getElementById('r-total').textContent = total ? kg(total) : '—';
+  document.getElementById('r-ptra').textContent = kg(v.ptra);
+  document.getElementById('r-cu').textContent = kg(cu);
+
+  const badge = document.getElementById('permit-badge');
+  badge.className = 'permit-badge ' + info.color;
+  document.getElementById('permit-code').textContent = permit === 'NC' ? '?' : permit;
+  document.getElementById('permit-desc').innerHTML = info.desc.replace('\n','<br>');
+
+  // Alert strip
+  const alert = document.getElementById('result-alert');
+  if (!v.ptac || !r.ptac) {
+    alert.className = 'alert-strip warn';
+    alert.innerHTML = '⚠ Données PTAC incomplètes — résultat non garanti';
+  } else if (!ptraOk) {
+    alert.className = 'alert-strip err';
+    const over = total - v.ptra;
+    alert.innerHTML = `🚫 SURCHARGE : Le PTRA du véhicule (${kg(v.ptra)}) est dépassé de ${kg(over)} — Attelage INTERDIT`;
+  } else if (!v.attelage) {
+    alert.className = 'alert-strip warn';
+    alert.innerHTML = "⚠ Aucun dispositif d'attelage renseigné pour ce véhicule — vérifier la fiche technique";
+  } else {
+    const margin = v.ptra && total ? v.ptra - total : null;
+    alert.className = 'alert-strip ok';
+    alert.innerHTML = `✅ Combinaison compatible — Marge PTRA : ${kg(margin)} · Attelage : ${v.attelage}`;
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────
+populateVehicles();
+populateTrailers();
+</script>
+</body>
+</html>
