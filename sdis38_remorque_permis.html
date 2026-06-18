@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SDIS 38 — Compatibilité Remorque & Permis</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --bg: #0d0f14;
@@ -407,6 +408,305 @@
   }
 
   .no-select { display: none; }
+
+  /* ── PASSWORD MODAL ─────────────────────────────────── */
+  .pwd-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.78);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  .pwd-overlay.active { display: flex; }
+
+  .pwd-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 340px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.7);
+  }
+
+  .pwd-header {
+    background: var(--surface2);
+    border-bottom: 2px solid var(--orange);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pwd-header h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .pwd-body {
+    padding: 24px 20px 16px;
+    text-align: center;
+  }
+
+  .pwd-body p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .pwd-input-wrap {
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .pwd-input-wrap input {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 40px 10px 14px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 3px;
+    outline: none;
+    text-align: center;
+    transition: border-color .2s;
+  }
+  .pwd-input-wrap input:focus { border-color: var(--orange); }
+  .pwd-input-wrap input.error { border-color: var(--red); animation: shake .3s; }
+
+  .pwd-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 2px;
+    line-height: 1;
+  }
+  .pwd-toggle:hover { color: var(--text-dim); }
+
+  .pwd-error-msg {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--red);
+    min-height: 14px;
+    margin-bottom: 14px;
+  }
+
+  .pwd-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .btn-pwd-ok {
+    background: var(--orange);
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .btn-pwd-ok:hover { opacity: .85; }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    60%      { transform: translateX(6px); }
+    80%      { transform: translateX(-3px); }
+  }
+
+  /* ── IMPORT EXCEL BUTTON ────────────────────────────── */
+  .btn-import {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: transparent;
+    border: 1.5px solid var(--orange-dim);
+    color: var(--orange);
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .btn-import:hover {
+    background: var(--orange-glow);
+    border-color: var(--orange);
+  }
+  .btn-import svg { flex-shrink: 0; }
+
+  /* ── IMPORT MODAL ───────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.72);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 520px;
+    max-width: 95vw;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  }
+
+  .modal-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .modal-header h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color .15s;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { padding: 20px; }
+
+  .modal-dropzone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  .modal-dropzone:hover, .modal-dropzone.drag-over {
+    border-color: var(--orange);
+    background: var(--orange-glow);
+    color: var(--orange);
+  }
+  .modal-dropzone .drop-icon { font-size: 32px; margin-bottom: 10px; }
+  .modal-dropzone p { margin: 4px 0; }
+  .modal-dropzone small { font-size: 10px; color: var(--text-muted); }
+  #import-file-input { display: none; }
+
+  .import-spec {
+    margin-top: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .import-spec b { color: var(--orange); font-size: 11px; }
+  .import-spec .col-list { margin-top: 6px; line-height: 1.9; }
+
+  .import-result {
+    display: none;
+    margin-top: 14px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .import-result.ok  { border: 1px solid rgba(46,204,113,.4); }
+  .import-result.err { border: 1px solid rgba(231,76,60,.4);  }
+  .import-result.warn { border: 1px solid rgba(243,156,18,.4);}
+
+  .import-result-inner {
+    padding: 12px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    line-height: 1.8;
+  }
+  .import-result.ok   .import-result-inner { background: rgba(46,204,113,.07); color: var(--green); }
+  .import-result.err  .import-result-inner { background: rgba(231,76,60,.07);  color: var(--red); }
+  .import-result.warn .import-result-inner { background: rgba(243,156,18,.07); color: var(--yellow); }
+
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .btn-cancel {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-cancel:hover { border-color: var(--text-dim); color: var(--text); }
+  .btn-apply {
+    background: var(--orange);
+    border: none;
+    color: #fff;
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+    display: none;
+  }
+  .btn-apply:hover { opacity: .85; }
+  .btn-apply.visible { display: inline-block; }
+
+  /* ── IMPORT DATE TAG in header ──────────────────────── */
+  .import-date-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    display: none;
+  }
+  .import-date-tag.visible { display: block; }
+
 </style>
 </head>
 <body>
@@ -421,7 +721,77 @@
     <span><b id="count-veh">277</b><br>véhicules</span>
     <span><b id="count-rem">42</b><br>remorques</span>
   </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:16px;">
+    <button class="btn-import" onclick="openImportModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      MAJ EXCEL
+    </button>
+    <span class="import-date-tag" id="import-date-tag">Dernière MAJ : —</span>
+  </div>
 </header>
+
+<!-- ── PASSWORD MODAL ── -->
+<div class="pwd-overlay" id="pwd-modal">
+  <div class="pwd-box">
+    <div class="pwd-header">
+      <span>🔒</span>
+      <h3>Accès restreint</h3>
+    </div>
+    <div class="pwd-body">
+      <p>Saisissez le mot de passe administrateur<br>pour accéder à la mise à jour du parc.</p>
+      <div class="pwd-input-wrap">
+        <input type="password" id="pwd-input" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') checkPassword()"
+               oninput="document.getElementById('pwd-error').textContent=''">
+        <button class="pwd-toggle" onclick="togglePwdVisibility()" title="Afficher/masquer">👁</button>
+      </div>
+      <div class="pwd-error-msg" id="pwd-error"></div>
+    </div>
+    <div class="pwd-footer">
+      <button class="btn-cancel" onclick="closePwdModal()">Annuler</button>
+      <button class="btn-pwd-ok" onclick="checkPassword()">🔓 Valider</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── IMPORT MODAL ── -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>📊</span>
+      <h3>Mise à jour via fichier Excel</h3>
+      <button class="modal-close" onclick="closeImportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-dropzone" id="import-dropzone"
+           onclick="document.getElementById('import-file-input').click()"
+           ondragover="handleDragOver(event)"
+           ondragleave="handleDragLeave(event)"
+           ondrop="handleDrop(event)">
+        <div class="drop-icon">📂</div>
+        <p>Cliquer ou glisser-déposer un fichier Excel</p>
+        <small>.xlsx · .xls — 2 onglets requis : VEHICULES et REMORQUES</small>
+      </div>
+      <input type="file" id="import-file-input" accept=".xlsx,.xls" onchange="handleFileSelect(event)">
+
+      <div class="import-spec">
+        <b>Structure attendue des onglets :</b>
+        <div class="col-list">
+          <b>VEHICULES</b> → id · immat · type · marque · modele · caserne · centre · groupement · classe · ptac · pv · ptra · attelage · statut<br>
+          <b>REMORQUES</b> → id · immat · type · marque · modele · caserne · centre · groupement · classe · ptac · pv · ptra · attelage · statut
+        </div>
+      </div>
+
+      <div class="import-result" id="import-result">
+        <div class="import-result-inner" id="import-result-inner"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeImportModal()">Annuler</button>
+      <button class="btn-apply" id="btn-apply" onclick="applyImport()">✔ Appliquer la mise à jour</button>
+    </div>
+  </div>
+</div>
 
 <main>
   <!-- ── VEHICLE SELECTOR ── -->
@@ -797,6 +1167,217 @@ function renderResult() {
 // ── Init ─────────────────────────────────────────────────
 populateVehicles();
 populateTrailers();
+
+// ── IMPORT EXCEL ──────────────────────────────────────────
+let pendingVehicles = null;
+let pendingTrailers = null;
+
+const VEH_COLS  = ['id','immat','type','marque','modele','caserne','centre','groupement','classe','ptac','pv','ptra','attelage','statut'];
+const REM_COLS  = ['id','immat','type','marque','modele','caserne','centre','groupement','classe','ptac','pv','ptra','attelage','statut'];
+const NUM_FIELDS = ['ptac','pv','ptra'];
+
+function openImportModal() {
+  // Ouvrir d'abord le modal de mot de passe
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-error').textContent = '';
+  document.getElementById('pwd-modal').classList.add('active');
+  setTimeout(() => document.getElementById('pwd-input').focus(), 80);
+}
+
+function closePwdModal() {
+  document.getElementById('pwd-modal').classList.remove('active');
+}
+
+function togglePwdVisibility() {
+  const inp = document.getElementById('pwd-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function checkPassword() {
+  const val = document.getElementById('pwd-input').value;
+  // Mot de passe stocké en hash SHA-256 côté client
+  const PWD_HASH = '9dac769f9b8f1b0a36ac064fa8603514e034bf4ba82f0ac7ee191d41d1c85bdd';
+  hashString(val).then(h => {
+    if (h === PWD_HASH) {
+      closePwdModal();
+      resetImportModal();
+      document.getElementById('import-modal').classList.add('active');
+    } else {
+      const inp = document.getElementById('pwd-input');
+      inp.classList.add('error');
+      document.getElementById('pwd-error').textContent = '⛔ Mot de passe incorrect';
+      inp.value = '';
+      setTimeout(() => inp.classList.remove('error'), 400);
+    }
+  });
+}
+
+async function hashString(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Fermer sur clic overlay
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pwd-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePwdModal();
+  });
+});
+
+function closeImportModal() {
+  document.getElementById('import-modal').classList.remove('active');
+}
+
+function resetImportModal() {
+  pendingVehicles = null;
+  pendingTrailers = null;
+  document.getElementById('import-file-input').value = '';
+  const res = document.getElementById('import-result');
+  res.style.display = 'none';
+  res.className = 'import-result';
+  document.getElementById('btn-apply').classList.remove('visible');
+  const dz = document.getElementById('import-dropzone');
+  dz.innerHTML = '<div class="drop-icon">📂</div><p>Cliquer ou glisser-déposer un fichier Excel</p><small>.xlsx · .xls — 2 onglets requis : VEHICULES et REMORQUES</small>';
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('import-dropzone').classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  document.getElementById('import-dropzone').classList.remove('drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('import-dropzone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processExcelFile(file);
+}
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) processExcelFile(file);
+}
+
+function sheetToObjects(sheet, cols) {
+  const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  if (!data.length) return [];
+  // Auto-détection de la ligne d'en-tête : cherche la première ligne contenant 'id'
+  let headerIdx = 0;
+  for (let i = 0; i < Math.min(data.length, 5); i++) {
+    const row = data[i].map(h => String(h).trim().toLowerCase());
+    if (row.includes('id')) { headerIdx = i; break; }
+  }
+  const header = data[headerIdx].map(h => String(h).trim().toLowerCase());
+  const rows = data.slice(headerIdx + 1);
+  return rows
+    .filter(r => r.some(c => c !== '' && c !== null && c !== undefined))
+    .map(row => {
+      const obj = {};
+      cols.forEach(col => {
+        const idx = header.indexOf(col.toLowerCase());
+        let val = idx >= 0 ? row[idx] : '';
+        if (val === undefined || val === null) val = '';
+        if (NUM_FIELDS.includes(col)) {
+          const n = parseFloat(String(val).replace(',', '.'));
+          obj[col] = isNaN(n) ? null : n;
+        } else {
+          obj[col] = String(val).trim();
+        }
+      });
+      return obj;
+    })
+    .filter(o => o.id && String(o.id).trim() !== '');
+}
+
+function processExcelFile(file) {
+  const dz = document.getElementById('import-dropzone');
+  dz.innerHTML = `<div class="drop-icon">⏳</div><p>Lecture de ${file.name}…</p>`;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+
+      const sheetNames = wb.SheetNames;
+      const vehSheet = sheetNames.find(n => n.trim().toUpperCase() === 'VEHICULES');
+      const remSheet = sheetNames.find(n => n.trim().toUpperCase() === 'REMORQUES');
+
+      const errors = [];
+      if (!vehSheet) errors.push('Onglet <b>VEHICULES</b> introuvable (onglets trouvés : ' + sheetNames.join(', ') + ')');
+      if (!remSheet) errors.push('Onglet <b>REMORQUES</b> introuvable (onglets trouvés : ' + sheetNames.join(', ') + ')');
+
+      if (errors.length) {
+        showImportResult('err', '❌ ' + errors.join('<br>❌ '));
+        dz.innerHTML = `<div class="drop-icon">📂</div><p>Cliquer ou glisser-déposer un fichier Excel</p><small>.xlsx · .xls — 2 onglets requis : VEHICULES et REMORQUES</small>`;
+        return;
+      }
+
+      pendingVehicles = sheetToObjects(wb.Sheets[vehSheet], VEH_COLS);
+      pendingTrailers = sheetToObjects(wb.Sheets[remSheet], REM_COLS);
+
+      const warns = [];
+      pendingVehicles.forEach(v => { if (!v.ptac) warns.push(`Véhicule ${v.id} : PTAC manquant`); });
+      pendingTrailers.forEach(r => { if (!r.ptac) warns.push(`Remorque ${r.id} : PTAC manquant`); });
+
+      let msg = `✅ <b>${pendingVehicles.length}</b> véhicules lus · <b>${pendingTrailers.length}</b> remorques lues`;
+      if (warns.length) {
+        msg += `<br><br>⚠ ${warns.length} entrée(s) sans PTAC :<br>${warns.slice(0,8).map(w=>'&nbsp;&nbsp;• '+w).join('<br>')}`;
+        if (warns.length > 8) msg += `<br>&nbsp;&nbsp;… et ${warns.length - 8} autres`;
+        showImportResult('warn', msg);
+      } else {
+        showImportResult('ok', msg);
+      }
+
+      dz.innerHTML = `<div class="drop-icon">✅</div><p><b>${file.name}</b></p><small>${pendingVehicles.length} véhicules · ${pendingTrailers.length} remorques</small>`;
+      document.getElementById('btn-apply').classList.add('visible');
+
+    } catch(err) {
+      showImportResult('err', '❌ Erreur de lecture : ' + err.message);
+      dz.innerHTML = `<div class="drop-icon">📂</div><p>Cliquer ou glisser-déposer un fichier Excel</p><small>.xlsx · .xls — 2 onglets requis : VEHICULES et REMORQUES</small>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showImportResult(type, html) {
+  const res = document.getElementById('import-result');
+  res.className = 'import-result ' + type;
+  res.style.display = 'block';
+  document.getElementById('import-result-inner').innerHTML = html;
+}
+
+function applyImport() {
+  if (!pendingVehicles || !pendingTrailers) return;
+
+  VEHICLES.length = 0;
+  pendingVehicles.forEach(v => VEHICLES.push(v));
+  TRAILERS.length = 0;
+  pendingTrailers.forEach(r => TRAILERS.push(r));
+
+  document.getElementById('count-veh').textContent = VEHICLES.length;
+  document.getElementById('count-rem').textContent = TRAILERS.length;
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const tag = document.getElementById('import-date-tag');
+  tag.textContent = 'Dernière MAJ : ' + dateStr;
+  tag.classList.add('visible');
+
+  selectedVehicle = null;
+  selectedTrailer = null;
+  populateVehicles();
+  populateTrailers();
+  renderVehInfo();
+  renderRemInfo();
+  renderResult();
+
+  closeImportModal();
+}
+
+document.getElementById('import-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeImportModal();
+});
 </script>
 </body>
 </html>
