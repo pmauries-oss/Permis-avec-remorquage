@@ -1347,9 +1347,38 @@ function showImportResult(type, html) {
   document.getElementById('import-result-inner').innerHTML = html;
 }
 
-function applyImport() {
+// ── CONFIG GITHUB ────────────────────────────────────────
+const GH_OWNER  = 'pmauries-oss';
+const GH_REPO   = 'Permis-avec-remorquage';
+const GH_BRANCH = 'main';
+const GH_TOKEN  = atob('Z2l0aHViX3BhdF8xMUNBTEZPUVEwdVFoR3lyRU80NUdGX3lLT3BzUlBGb3A3NDg4TFRnT2RZcHJ3T0lrMVZrMjFJaktyeWpoS1Bua2FUWU9XTUxKU2J1UVlEcFBw');
+
+async function getFileSHA(path) {
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${GH_TOKEN}`, Accept: 'application/vnd.github+json' }});
+  if (r.status === 404) return null;
+  const d = await r.json();
+  return d.sha || null;
+}
+
+async function pushFileToGitHub(path, jsonData, commitMsg) {
+  const sha = await getFileSHA(path);
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(jsonData, null, 2))));
+  const body = { message: commitMsg, content, branch: GH_BRANCH };
+  if (sha) body.sha = sha;
+  const r = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${GH_TOKEN}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message || r.statusText); }
+  return await r.json();
+}
+
+async function applyImport() {
   if (!pendingVehicles || !pendingTrailers) return;
 
+  // Mettre à jour l'affichage local d'abord
   VEHICLES.length = 0;
   pendingVehicles.forEach(v => VEHICLES.push(v));
   TRAILERS.length = 0;
@@ -1358,12 +1387,6 @@ function applyImport() {
   document.getElementById('count-veh').textContent = VEHICLES.length;
   document.getElementById('count-rem').textContent = TRAILERS.length;
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
-  const tag = document.getElementById('import-date-tag');
-  tag.textContent = 'Dernière MAJ : ' + dateStr;
-  tag.classList.add('visible');
-
   selectedVehicle = null;
   selectedTrailer = null;
   populateVehicles();
@@ -1371,8 +1394,29 @@ function applyImport() {
   renderVehInfo();
   renderRemInfo();
   renderResult();
-
   closeImportModal();
+
+  // Afficher indicateur de chargement
+  const tag = document.getElementById('import-date-tag');
+  tag.textContent = '⏳ Enregistrement sur GitHub…';
+  tag.classList.add('visible');
+  tag.style.color = 'var(--orange)';
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const commitMsg = `MAJ parc SDIS38 — ${dateStr} — ${VEHICLES.length} véhicules · ${TRAILERS.length} remorques`;
+
+  try {
+    await pushFileToGitHub('data/vehicules.json', pendingVehicles, commitMsg);
+    await pushFileToGitHub('data/remorques.json', pendingTrailers, commitMsg);
+    tag.textContent = `✅ GitHub mis à jour — ${dateStr}`;
+    tag.style.color = 'var(--green, #2ecc71)';
+    setTimeout(() => { tag.textContent = 'Dernière MAJ : ' + dateStr; tag.style.color = ''; }, 4000);
+  } catch(err) {
+    tag.textContent = '⛔ Erreur GitHub : ' + err.message;
+    tag.style.color = 'var(--red, #e74c3c)';
+    console.error('GitHub push error:', err);
+  }
 }
 
 document.getElementById('import-modal').addEventListener('click', function(e) {
